@@ -16,14 +16,16 @@ app.use(express.static('public'));
 // Serve FLAC
 app.use('/music', express.static('music', {
   setHeaders: (res, path) => {
-    if (path.endsWith(".flac")) res.setHeader("Content-Type", "audio/flac");
+    if (path.endsWith(".flac")) {
+      res.setHeader("Content-Type", "audio/flac");
+    }
   }
 }));
 
 // Server state
 let state = {
   currentSong: "song.flac",
-  songTime: 0, 
+  songTime: 0,        // elapsed time in seconds
   paused: true,
   repeat: false,
   metadata: {
@@ -51,6 +53,7 @@ async function loadMetadata() {
 
 // Socket logic
 io.on('connection', (socket) => {
+  // Assign admin if none
   if (!adminId) adminId = socket.id;
 
   socket.emit('role', { admin: socket.id === adminId });
@@ -58,10 +61,25 @@ io.on('connection', (socket) => {
   io.emit('adminChanged', { adminId });
 
   // Admin controls
-  socket.on('play', () => { if (socket.id !== adminId) return; state.paused = false; });
-  socket.on('pause', () => { if (socket.id !== adminId) return; state.paused = true; });
-  socket.on('seek', (time) => { if (socket.id !== adminId) return; state.songTime = time; });
-  socket.on('toggleRepeat', () => { if (socket.id !== adminId) return; state.repeat = !state.repeat; });
+  socket.on('play', () => {
+    if (socket.id !== adminId) return;
+    state.paused = false;
+  });
+
+  socket.on('pause', () => {
+    if (socket.id !== adminId) return;
+    state.paused = true;
+  });
+
+  socket.on('seek', (time) => {
+    if (socket.id !== adminId) return;
+    state.songTime = time;
+  });
+
+  socket.on('toggleRepeat', () => {
+    if (socket.id !== adminId) return;
+    state.repeat = !state.repeat;
+  });
 
   socket.on('disconnect', () => {
     if (socket.id === adminId) adminId = null;
@@ -71,11 +89,11 @@ io.on('connection', (socket) => {
 
 // Server-driven sync interval (200ms)
 setInterval(() => {
-  if (!state.paused) state.songTime += 0.2;
+  if (!state.paused) state.songTime += 0.2; // increment 200ms
   io.emit('syncTime', { songTime: state.songTime, paused: state.paused, repeat: state.repeat });
 }, 200);
 
-// Start server
+// Start server after loading metadata
 loadMetadata().then(() => {
   server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });

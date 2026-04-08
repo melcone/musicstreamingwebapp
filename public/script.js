@@ -10,19 +10,8 @@ const title = document.getElementById("title");
 const artist = document.getElementById("artist");
 const repeatBtn = document.getElementById("repeat");
 
-const joinBtn = document.getElementById("joinBtn");
-const joinContainer = document.getElementById("joinContainer");
-
 let isAdmin = false;
 let state = {};
-let joined = false;
-
-// Click to join (listener autoplay)
-joinBtn.addEventListener("click", () => {
-  joined = true;
-  joinContainer.style.display = "none";
-  if (!isAdmin) player.play().catch(() => {});
-});
 
 // Role assignment
 socket.on('role', (data) => {
@@ -51,7 +40,8 @@ socket.on('syncTime', (data) => {
 
   repeatBtn.textContent = state.repeat ? "Repeat: ON" : "Repeat: OFF";
 
-  if (!isAdmin && joined) {
+  if (!isAdmin) {
+    // Sync listener player
     if (Math.abs(player.currentTime - state.songTime) > 0.3) {
       player.currentTime = state.songTime;
     }
@@ -69,8 +59,14 @@ function pause() { if (!isAdmin) return; socket.emit("pause"); }
 function toggleRepeat() { if (!isAdmin) return; socket.emit("toggleRepeat"); }
 
 // Admin slider control
-seekSlider.addEventListener("input", () => { if (!isAdmin) return; player.currentTime = seekSlider.value; });
-seekSlider.addEventListener("change", () => { if (!isAdmin) return; socket.emit("seek", parseFloat(seekSlider.value)); });
+seekSlider.addEventListener("input", () => {
+  if (!isAdmin) return;
+  player.currentTime = seekSlider.value;
+});
+seekSlider.addEventListener("change", () => {
+  if (!isAdmin) return;
+  socket.emit("seek", parseFloat(seekSlider.value));
+});
 
 // Admin updates slider
 player.addEventListener("timeupdate", () => {
