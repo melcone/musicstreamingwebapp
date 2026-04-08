@@ -1,7 +1,7 @@
 {
   "name": "music-sync-website",
   "version": "1.0.0",
-  "description": "",
+  "description": "Heavily vibe coded music streaming web app where people can listen in the same song together",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -15,5 +15,13 @@
     "express": "^5.2.1",
     "music-metadata": "^11.12.3",
     "socket.io": "^4.8.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/melcone/musicstreamingwebapp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/melcone/musicstreamingwebapp/issues"
+  },
+  "homepage": "https://github.com/melcone/musicstreamingwebapp#readme"
 }
